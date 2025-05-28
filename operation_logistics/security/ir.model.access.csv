@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_logistics_shipment_user,Logistics Shipment User,model_logistics_shipment,base.group_user,1,1,1,1
+access_logistics_shipment_service_line_user,Logistics Shipment Service Line User,model_logistics_shipment_service_line,base.group_user,1,1,1,1

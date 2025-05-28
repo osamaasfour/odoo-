@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="seq_logistics_shipment" model="ir.sequence">
+            <field name="name">Shipment Reference</field>
+            <field name="code">logistics.shipment.sequence</field>
+            <field name="prefix">SHIP/%(year)s/</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+    </data>
+
+    <record id="logistics_shipment_view_form" model="ir.ui.view">
+        <field name="name">logistics.shipment.form</field>
+        <field name="model">logistics.shipment</field>
+        <field name="arch" type="xml">
+            <form string="Shipment">
+                <header>
+                    <button name="action_confirm_shipment" string="Confirm" type="object" states="draft" class="oe_highlight"/>
+                    <button name="action_set_in_transit" string="In Transit" type="object" states="confirmed" class="oe_highlight"/>
+                    <button name="action_set_delivered" string="Delivered" type="object" states="in_transit" class="oe_highlight"/>
+                    <button name="action_cancel_shipment" string="Cancel" type="object" states="draft,confirmed,in_transit"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,in_transit,delivered"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="client_id"/>
+                            <field name="shipment_date"/>
+                            <field name="origin_location"/>
+                            <field name="destination_location"/>
+                        </group>
+                        <group>
+                            <field name="shipper_name"/>
+                            <field name="consignee_name"/>
+                            <field name="weight"/>
+                            <field name="volume"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Description">
+                            <field name="description"/>
+                        </page>
+                        <page string="Billing" name="billing_tab">
+                            <field name="service_line_ids">
+                                <tree editable="bottom">
+                                    <field name="name"/> <field name="vendor_id"/>
+                                    <field name="vendor_bill_id"/>
+                                    <field name="vendor_bill_amount"/>
+                                    <field name="client_invoice_id"/>
+                                    <field name="client_invoice_amount"/>
+                                    <field name="service_revenue" sum="Total Service Revenue"/>
+                                    <field name="notes"/>
+                                    <field name="currency_id" invisible="1"/>
+                                </tree>
+                            </field>
+                            <group class="oe_subtotal_footer oe_right">
+                                <field name="total_vendor_cost" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="total_invoice_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <div class="oe_clear"/>
+                                <field name="revenue" widget="monetary" class="oe_subtotal_footer_separator" options="{'currency_field': 'currency_id'}"/>
+                            </group>
+                        </page>
+                        <page string="Related Sales Order">
+                            <field name="sale_order_id"/>
+                            </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="logistics_shipment_view_tree" model="ir.ui.view">
+        <field name="name">logistics.shipment.tree</field>
+        <field name="model">logistics.shipment</field>
+        <field name="arch" type="xml">
+            <tree string="Shipments">
+                <field name="name"/>
+                <field name="client_id"/>
+                <field name="shipment_date"/>
+                <field name="origin_location"/>
+                <field name="destination_location"/>
+                <field name="total_vendor_cost"/>
+                <field name="total_invoice_amount"/>
+                <field name="revenue"/>
+                <field name="state" widget="badge" decoration-success="state == 'delivered'" decoration-warning="state == 'in_transit'" decoration-info="state == 'confirmed'"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="logistics_shipment_view_search" model="ir.ui.view">
+        <field name="name">logistics.shipment.search</field>
+        <field name="model">logistics.shipment</field>
+        <field name="arch" type="xml">
+            <search string="Shipments">
+                <field name="name"/>
+                <field name="client_id"/>
+                <field name="origin_location"/>
+                <field name="destination_location"/>
+                <filter name="status_draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="status_confirmed" string="Confirmed" domain="[('state', '=', 'confirmed')]"/>
+                <filter name="status_in_transit" string="In Transit" domain="[('state', '=', 'in_transit')]"/>
+                <filter name="status_delivered" string="Delivered" domain="[('state', '=', 'delivered')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="groupby_client" string="Client" context="{'group_by': 'client_id'}"/>
+                    <filter name="groupby_state" string="Status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="logistics_shipment_action" model="ir.actions.act_window">
+        <field name="name">Shipments</field>
+        <field name="res_model">logistics.shipment</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first shipment!
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="logistics_operations_root_menu" name="Operations" sequence="20"/>
+    <menuitem id="logistics_shipment_menu" name="Shipments" parent="logistics_operations_root_menu" action="logistics_shipment_action" sequence="10"/>
+
+</odoo>
