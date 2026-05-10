@@ -60,14 +60,15 @@ class LogisticsShipment(models.Model):
             shipment.total_invoice_amount = sum(line.client_invoice_amount for line in shipment.service_line_ids)
             shipment.revenue = shipment.total_invoice_amount - shipment.total_vendor_cost
 
-    @api.model
-    def create(self, vals):
+    @api.model_create_multi
+    def create(self, vals_list):
         """
         Overrides the create method to generate a unique shipment reference using a sequence.
         """
-        if vals.get('name', 'New') == 'New':
-            vals['name'] = self.env['ir.sequence'].next_by_code('logistics.shipment.sequence') or 'New'
-        return super(LogisticsShipment, self).create(vals)
+        for vals in vals_list:
+            if vals.get('name', 'New') == 'New':
+                vals['name'] = self.env['ir.sequence'].next_by_code('logistics.shipment.sequence') or 'New'
+        return super().create(vals_list)
 
     # Workflow/State Transition Buttons (methods called from XML buttons)
     def action_confirm_shipment(self):
