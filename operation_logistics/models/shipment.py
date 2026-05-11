@@ -14,8 +14,7 @@ class LogisticsShipment(models.Model):
     _description = 'Logistics Shipment'
     _inherit = ['mail.thread', 'mail.activity.mixin'] # Inherit for communication features (chatter, activities)
 
-    name = fields.Char(string='Shipment Reference', required=True, copy=False, readonly=True,
-                       default=lambda self: self.env['ir.sequence'].next_by_code('logistics.shipment.sequence') or 'New')
+    name = fields.Char(string='Shipment Reference', required=True, copy=False, readonly=True, default='New')
     state = fields.Selection([
         ('draft', 'Draft'),
         ('confirmed', 'Confirmed'),
@@ -25,7 +24,7 @@ class LogisticsShipment(models.Model):
     ], string='Status', default='draft', tracking=True)
 
     # Basic Shipment Details
-    shipment_date = fields.Date(string='Shipment Date', default=fields.Date.today(), required=True)
+    shipment_date = fields.Date(string='Shipment Date', default=fields.Date.context_today, required=True)
     origin_location = fields.Char(string='Origin Location', required=True)
     destination_location = fields.Char(string='Destination Location', required=True)
     client_id = fields.Many2one('res.partner', string='Client', required=True, domain=[('is_company', '=', True)])
@@ -60,14 +59,15 @@ class LogisticsShipment(models.Model):
             shipment.total_invoice_amount = sum(line.client_invoice_amount for line in shipment.service_line_ids)
             shipment.revenue = shipment.total_invoice_amount - shipment.total_vendor_cost
 
-    @api.model
-    def create(self, vals):
+    @api.model_create_multi
+    def create(self, vals_list):
         """
         Overrides the create method to generate a unique shipment reference using a sequence.
         """
-        if vals.get('name', 'New') == 'New':
-            vals['name'] = self.env['ir.sequence'].next_by_code('logistics.shipment.sequence') or 'New'
-        return super(LogisticsShipment, self).create(vals)
+        for vals in vals_list:
+            if vals.get('name', 'New') == 'New':
+                vals['name'] = self.env['ir.sequence'].next_by_code('logistics.shipment.sequence') or 'New'
+        return super(LogisticsShipment, self).create(vals_list)
 
     # Workflow/State Transition Buttons (methods called from XML buttons)
     def action_confirm_shipment(self):
