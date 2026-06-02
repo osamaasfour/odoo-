@@ -19,6 +19,7 @@
     'data': [
         'security/ir.model.access.csv',
         'views/shipment_views.xml',
+        'views/accounting_report_views.xml',
         # يمكنك إضافة المزيد من ملفات الـ XML هنا لاحقًا (مثل القوائم، التقارير)
     ],
     'installable': True,

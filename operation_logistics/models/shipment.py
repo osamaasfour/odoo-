@@ -97,6 +97,25 @@ class LogisticsShipmentServiceLine(models.Model):
     _description = 'Shipment Service Line'
 
     shipment_id = fields.Many2one('logistics.shipment', string='Shipment', required=True, ondelete='cascade')
+    shipment_date = fields.Date(
+        string='Shipment Date',
+        related='shipment_id.shipment_date',
+        store=True,
+        readonly=True,
+    )
+    shipment_state = fields.Selection(
+        string='Shipment Status',
+        related='shipment_id.state',
+        store=True,
+        readonly=True,
+    )
+    client_id = fields.Many2one(
+        'res.partner',
+        string='Client',
+        related='shipment_id.client_id',
+        store=True,
+        readonly=True,
+    )
     
     # This is the 'name' field that holds the service description/name.
     # The XML view refers to this field as 'name'.
