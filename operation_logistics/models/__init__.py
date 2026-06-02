@@ -1,1 +1,1 @@
-from . import shipment
+from . import shipment  # noqa: F401
