@@ -1,6 +1,5 @@
 # operation_logistics/models/shipment.py
 from odoo import models, fields, api
-from odoo.exceptions import UserError, ValidationError
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -8,11 +7,12 @@ _logger = logging.getLogger(__name__)
 # This message will appear in your Odoo server log if this file is loaded successfully.
 _logger.info("LOGISTICS SHIPMENT MODULE: shipment.py is being loaded!")
 
+
 # Define the main Shipment model
 class LogisticsShipment(models.Model):
     _name = 'logistics.shipment'
     _description = 'Logistics Shipment'
-    _inherit = ['mail.thread', 'mail.activity.mixin'] # Inherit for communication features (chatter, activities)
+    _inherit = ['mail.thread', 'mail.activity.mixin']  # Inherit for communication features (chatter, activities)
 
     name = fields.Char(string='Shipment Reference', required=True, copy=False, readonly=True, default='New')
     state = fields.Selection([
@@ -91,26 +91,46 @@ class LogisticsShipment(models.Model):
         ('name_unique', 'UNIQUE(name)', 'Shipment Reference must be unique!'),
     ]
 
+
 # Define the Service Line model (This is the child model for service_line_ids)
 class LogisticsShipmentServiceLine(models.Model):
     _name = 'logistics.shipment.service.line'
     _description = 'Shipment Service Line'
 
     shipment_id = fields.Many2one('logistics.shipment', string='Shipment', required=True, ondelete='cascade')
-    
+    shipment_date = fields.Date(
+        string='Shipment Date',
+        related='shipment_id.shipment_date',
+        store=True,
+        readonly=True,
+    )
+    shipment_state = fields.Selection(
+        string='Shipment Status',
+        related='shipment_id.state',
+        store=True,
+        readonly=True,
+    )
+    client_id = fields.Many2one(
+        'res.partner',
+        string='Client',
+        related='shipment_id.client_id',
+        store=True,
+        readonly=True,
+    )
+
     # This is the 'name' field that holds the service description/name.
     # The XML view refers to this field as 'name'.
-    name = fields.Char(string='Service Name', required=True) 
-    
+    name = fields.Char(string='Service Name', required=True)
+
     vendor_id = fields.Many2one('res.partner', string='Vendor', domain=[('is_company', '=', True)])
     # Link to Account Move (Vendor Bill)
     vendor_bill_id = fields.Many2one('account.move', string='Vendor Bill', domain=[('move_type', '=', 'in_invoice')])
     vendor_bill_amount = fields.Monetary(string='Vendor Cost', currency_field='currency_id')
-    
+
     # Link to Account Move (Client Invoice)
     client_invoice_id = fields.Many2one('account.move', string='Client Invoice', domain=[('move_type', '=', 'out_invoice')])
     client_invoice_amount = fields.Monetary(string='Invoice Amount', currency_field='currency_id')
-    
+
     notes = fields.Text(string='Notes')
     # Currency is related to the parent shipment's currency
     currency_id = fields.Many2one('res.currency', string='Currency', related='shipment_id.currency_id')

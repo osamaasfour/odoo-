@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="logistics_shipment_service_line_accounting_tree" model="ir.ui.view">
+        <field name="name">logistics.shipment.service.line.accounting.tree</field>
+        <field name="model">logistics.shipment.service.line</field>
+        <field name="arch" type="xml">
+            <tree string="Shipment Accounting Report" create="0" edit="0">
+                <field name="shipment_id"/>
+                <field name="shipment_date"/>
+                <field name="shipment_state" widget="badge" decoration-success="shipment_state == 'delivered'" decoration-warning="shipment_state == 'in_transit'" decoration-info="shipment_state == 'confirmed'"/>
+                <field name="client_id"/>
+                <field name="name"/>
+                <field name="vendor_id"/>
+                <field name="vendor_bill_id"/>
+                <field name="vendor_bill_amount" sum="Total Vendor Cost"/>
+                <field name="client_invoice_id"/>
+                <field name="client_invoice_amount" sum="Total Invoice Amount"/>
+                <field name="service_revenue" sum="Total Revenue"/>
+                <field name="currency_id" invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="logistics_shipment_service_line_accounting_pivot" model="ir.ui.view">
+        <field name="name">logistics.shipment.service.line.accounting.pivot</field>
+        <field name="model">logistics.shipment.service.line</field>
+        <field name="arch" type="xml">
+            <pivot string="Shipment Accounting Analysis">
+                <field name="client_id" type="row"/>
+                <field name="vendor_id" type="row"/>
+                <field name="shipment_date" interval="month" type="col"/>
+                <field name="vendor_bill_amount" type="measure"/>
+                <field name="client_invoice_amount" type="measure"/>
+                <field name="service_revenue" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="logistics_shipment_service_line_accounting_graph" model="ir.ui.view">
+        <field name="name">logistics.shipment.service.line.accounting.graph</field>
+        <field name="model">logistics.shipment.service.line</field>
+        <field name="arch" type="xml">
+            <graph string="Shipment Accounting Analysis" type="bar" stacked="True">
+                <field name="client_id"/>
+                <field name="vendor_bill_amount" type="measure"/>
+                <field name="client_invoice_amount" type="measure"/>
+                <field name="service_revenue" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="logistics_shipment_service_line_accounting_search" model="ir.ui.view">
+        <field name="name">logistics.shipment.service.line.accounting.search</field>
+        <field name="model">logistics.shipment.service.line</field>
+        <field name="arch" type="xml">
+            <search string="Shipment Accounting Report">
+                <field name="shipment_id"/>
+                <field name="client_id"/>
+                <field name="vendor_id"/>
+                <field name="vendor_bill_id"/>
+                <field name="client_invoice_id"/>
+                <filter name="has_vendor_bill" string="With Vendor Bill" domain="[('vendor_bill_id', '!=', False)]"/>
+                <filter name="has_client_invoice" string="With Client Invoice" domain="[('client_invoice_id', '!=', False)]"/>
+                <filter name="positive_revenue" string="Profitable" domain="[('service_revenue', '&gt;', 0)]"/>
+                <separator/>
+                <filter name="shipment_state_confirmed" string="Confirmed" domain="[('shipment_state', '=', 'confirmed')]"/>
+                <filter name="shipment_state_in_transit" string="In Transit" domain="[('shipment_state', '=', 'in_transit')]"/>
+                <filter name="shipment_state_delivered" string="Delivered" domain="[('shipment_state', '=', 'delivered')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="groupby_client" string="Client" context="{'group_by': 'client_id'}"/>
+                    <filter name="groupby_vendor" string="Vendor" context="{'group_by': 'vendor_id'}"/>
+                    <filter name="groupby_shipment" string="Shipment" context="{'group_by': 'shipment_id'}"/>
+                    <filter name="groupby_status" string="Shipment Status" context="{'group_by': 'shipment_state'}"/>
+                    <filter name="groupby_shipment_date" string="Shipment Date" context="{'group_by': 'shipment_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="logistics_shipment_accounting_report_action" model="ir.actions.act_window">
+        <field name="name">Shipment Accounting Report</field>
+        <field name="res_model">logistics.shipment.service.line</field>
+        <field name="view_mode">pivot,graph,tree</field>
+        <field name="search_view_id" ref="logistics_shipment_service_line_accounting_search"/>
+        <field name="context">{'search_default_groupby_client': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Add service lines on shipments to analyze logistics costs, invoices, and revenue.
+            </p>
+        </field>
+    </record>
+
+    <menuitem
+        id="logistics_shipment_accounting_report_menu"
+        name="Shipment Accounting Report"
+        parent="account.menu_finance_reports"
+        action="logistics_shipment_accounting_report_action"
+        sequence="95"
+        groups="account.group_account_readonly,account.group_account_invoice"/>
+</odoo>
